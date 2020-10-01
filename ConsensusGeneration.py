@@ -25,7 +25,7 @@ for f in infiles:
 outfile = gzip.open(workdir + "/1_consensus.fastq.gz","wb")
 parameterfile1 = open(workdir + "/ProcessingStats.txt","w")
 parameterfile2 = open(workdir + "/RepeatLengthDistribution.txt","w")
-
+parameterfile3 = open(workdir + "/RepeatCopyDistribution.txt","w")
 PoorQuality = 0
 NoRepeats = 0
 AbnormalRepeatLength = 0
@@ -34,12 +34,12 @@ ConsensusSequences = 0
 TotalReads = 0
 
 RepeatLengths = [0]*115
-
+RepeatCopies = [0]*20
 #read through fastq.gz files, generate consensus sequences using ConsensusModule and report read parameters
 for f in infiles:
 	sys.stderr.write("Processing file '%s'\n" % f)
 	infile = gzip.open(f, 'rb')
-	counter_PoorQuality, counter_NoRepeats, counter_AbnormalRepeatLength, counter_LowIdentity, counter_ConsensusSequences, counter_TotalReads, counter_RepeatLengths = Consensus(infile, outfile)
+	counter_PoorQuality, counter_NoRepeats, counter_AbnormalRepeatLength, counter_LowIdentity, counter_ConsensusSequences, counter_TotalReads, counter_RepeatLengths,counter_Copies = Consensus(infile, outfile)
 	infile.close()
 
 	PoorQuality += counter_PoorQuality
@@ -50,7 +50,7 @@ for f in infiles:
 	TotalReads += counter_TotalReads
 
 	RepeatLengths = numpy.add(RepeatLengths, counter_RepeatLengths)
-
+	RepeatCopies = numpy.add(RepeatCopies, counter_Copies)
 #write read parameters
 parameterfile1.write("Consensus Generation Stats\n")
 parameterfile1.write(str(PoorQuality) + "\tPoor quality\n")
@@ -67,7 +67,14 @@ i = 0
 for Length in RepeatLengths:
 	parameterfile2.write(str(i) + "\t" + str(Length) + "\n")
 	i += 1
+
+parameterfile3.write("Copy\tNumberOfReads\n")
+i = 0
+for Copy in RepeatCopies:
+        parameterfile3.write(str(i) + "\t" + str(Copy) + "\n")
+        i += 1
 	
 outfile.close()
 parameterfile1.close()
 parameterfile2.close()
+parameterfile3.close()

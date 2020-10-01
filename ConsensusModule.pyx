@@ -210,7 +210,7 @@ def Consensus(infile, outfile):
   counter_ConsensusSequences = 0
 
   RepeatLengths = [0]*115
-	
+  RepeatCopies = [0]*20
   while True:
 
     # Read FASTQ formatted sequence entry
@@ -244,6 +244,7 @@ def Consensus(infile, outfile):
       else:
         RepeatLengths[repLength] += 1
         flag, rep1, rep2, rep3, q1, q2, q3 = OptimizeReps(Sequence, QualityScores, repLength)
+        RepeatCopies[len(Sequence)//repLength] += 1
 
         if flag == 0:
           counter_LowIdentity += 1
@@ -258,4 +259,4 @@ def Consensus(infile, outfile):
 
   return counter_PoorQuality, counter_NoRepeats, counter_AbnormalRepeatLength, \
          counter_LowIdentity, counter_ConsensusSequences, counter_TotalReads, \
-         RepeatLengths
+         RepeatLengths, RepeatCopies
