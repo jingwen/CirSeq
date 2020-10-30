@@ -10,9 +10,10 @@ set -e
 
 WORKDIR=$1
 REFDIR_IDX=$2
-SCRIPTDIR=$3
-SPLICESITE=$4
-FASTQS="${@:5}"
+THREAD=$3
+SCRIPTDIR=$4
+SPLICESITE=$5
+FASTQS="${@:6}"
 
 #check if working directory exists
 if [ ! -d "$WORKDIR" ];then mkdir $WORKDIR; fi
@@ -26,23 +27,23 @@ python ${SCRIPTDIR}/ConsensusGeneration.py $WORKDIR $FASTQS
 
 # align consensus
 #bowtie2 -q --phred33 --no-unal --no-hd --no-sq --local -x ${REFIDX} -U ${WORKDIR}/4_rearranged.fastq.gz | gzip -c > ${WORKDIR}/6_alignment.sam.gz
-hisat2 --no-hd --no-sq -x ${REFDIR_IDX} --known-splicesite-infile ${SPLICESITE} -U ${WORKDIR}/1_consensus.fastq.gz | gzip -c > ${WORKDIR}/2_alignment.sam.gz
+hisat2 -p $THREAD --no-hd --no-sq -x ${REFDIR_IDX} --known-splicesite-infile ${SPLICESITE} -U ${WORKDIR}/1_consensus.fastq.gz | gzip -c > ${WORKDIR}/2_alignment.sam.gz
 
 # preprocess 1
 python ${SCRIPTDIR}/preprocessing_1.py ${WORKDIR}
 
 # align again
 #bowtie2 -q --phred33 --no-unal --no-hd --no-sq --local -x ${REFIDX} -U ${WORKDIR}/4_rearranged.fastq.gz | gzip -c > ${WORKDIR}/6_alignment.sam.gz
-hisat2 --no-unal --no-hd --no-sq -x ${REFDIR_IDX} --known-splicesite-infile ${SPLICESITE} -U ${WORKDIR}/4_rearranged.fastq.gz | gzip -c > ${WORKDIR}/6_alignment.sam.gz
+hisat2 -p $THREAD --no-unal --no-hd --no-sq -x ${REFDIR_IDX} --known-splicesite-infile ${SPLICESITE} -U ${WORKDIR}/4_rearranged.fastq.gz | gzip -c > ${WORKDIR}/6_alignment.sam.gz
 
 # preprocess 2
 python ${SCRIPTDIR}/preprocessing_2.py ${WORKDIR} 
 
 #bowtie2 -q --phred33 --no-unal --no-hd --no-sq --local -x ${REFIDX} -U ${WORKDIR}/5_rotated.fastq.gz | gzip -c > ${WORKDIR}/9_alignment.sam.gz
-hisat2 --no-unal --no-hd --no-sq -x ${REFDIR_IDX} --known-splicesite-infile ${SPLICESITE} -U ${WORKDIR}/5_rotated.fastq.gz | gzip -c > ${WORKDIR}/9_alignment.sam.gz
+hisat2 -p $THREAD --no-unal --no-hd --no-sq -x ${REFDIR_IDX} --known-splicesite-infile ${SPLICESITE} -U ${WORKDIR}/5_rotated.fastq.gz | gzip -c > ${WORKDIR}/9_alignment.sam.gz
 
 #bowtie2 -q --phred33 --no-unal --no-hd --no-sq --local -x ${REFIDX} -U ${WORKDIR}/8_rotated.fastq.gz | gzip -c > ${WORKDIR}/10_alignment.sam.gz
-hisat2 --no-unal --no-hd --no-sq -x ${REFDIR_IDX} --known-splicesite-infile ${SPLICESITE} -U ${WORKDIR}/8_rotated.fastq.gz | gzip -c > ${WORKDIR}/10_alignment.sam.gz
+hisat2 -p $THREAD --no-unal --no-hd --no-sq -x ${REFDIR_IDX} --known-splicesite-infile ${SPLICESITE} -U ${WORKDIR}/8_rotated.fastq.gz | gzip -c > ${WORKDIR}/10_alignment.sam.gz
 
 # preprocess 3
 python ${SCRIPTDIR}/preprocessing_3.py ${WORKDIR} 
