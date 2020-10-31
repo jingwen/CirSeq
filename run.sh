@@ -27,29 +27,29 @@ python ${SCRIPTDIR}/ConsensusGeneration.py $WORKDIR $FASTQS
 
 # align consensus
 #bowtie2 -q --phred33 --no-unal --no-hd --no-sq --local -x ${REFIDX} -U ${WORKDIR}/4_rearranged.fastq.gz | gzip -c > ${WORKDIR}/6_alignment.sam.gz
-hisat2 -p $THREAD --no-hd --no-sq -x ${REFDIR_IDX} --known-splicesite-infile ${SPLICESITE} -U ${WORKDIR}/1_consensus.fastq.gz | gzip -c > ${WORKDIR}/2_alignment.sam.gz
+hisat2 -p $THREAD -x ${REFDIR_IDX} --known-splicesite-infile ${SPLICESITE} -U ${WORKDIR}/1_consensus.fastq.gz | samtools view -@ $THREAD -b -o ${WORKDIR}/2_alignment.bam
 
 # preprocess 1
 python ${SCRIPTDIR}/preprocessing_1.py ${WORKDIR}
 
 # align again
 #bowtie2 -q --phred33 --no-unal --no-hd --no-sq --local -x ${REFIDX} -U ${WORKDIR}/4_rearranged.fastq.gz | gzip -c > ${WORKDIR}/6_alignment.sam.gz
-hisat2 -p $THREAD --no-unal --no-hd --no-sq -x ${REFDIR_IDX} --known-splicesite-infile ${SPLICESITE} -U ${WORKDIR}/4_rearranged.fastq.gz | gzip -c > ${WORKDIR}/6_alignment.sam.gz
+hisat2 -p $THREAD --no-unal -x ${REFDIR_IDX} --known-splicesite-infile ${SPLICESITE} -U ${WORKDIR}/4_rearranged.fastq.gz | samtools view -@ $THREAD -b -o ${WORKDIR}/6_alignment.bam
 
 # preprocess 2
 python ${SCRIPTDIR}/preprocessing_2.py ${WORKDIR} 
 
 #bowtie2 -q --phred33 --no-unal --no-hd --no-sq --local -x ${REFIDX} -U ${WORKDIR}/5_rotated.fastq.gz | gzip -c > ${WORKDIR}/9_alignment.sam.gz
-hisat2 -p $THREAD --no-unal --no-hd --no-sq -x ${REFDIR_IDX} --known-splicesite-infile ${SPLICESITE} -U ${WORKDIR}/5_rotated.fastq.gz | gzip -c > ${WORKDIR}/9_alignment.sam.gz
+hisat2 -p $THREAD --no-unal -x ${REFDIR_IDX} --known-splicesite-infile ${SPLICESITE} -U ${WORKDIR}/5_rotated.fastq.gz | samtools view -@ $THREAD -b -o ${WORKDIR}/9_alignment.bam
 
 #bowtie2 -q --phred33 --no-unal --no-hd --no-sq --local -x ${REFIDX} -U ${WORKDIR}/8_rotated.fastq.gz | gzip -c > ${WORKDIR}/10_alignment.sam.gz
-hisat2 -p $THREAD --no-unal --no-hd --no-sq -x ${REFDIR_IDX} --known-splicesite-infile ${SPLICESITE} -U ${WORKDIR}/8_rotated.fastq.gz | gzip -c > ${WORKDIR}/10_alignment.sam.gz
+hisat2 -p $THREAD --no-unal -x ${REFDIR_IDX} --known-splicesite-infile ${SPLICESITE} -U ${WORKDIR}/8_rotated.fastq.gz | samtools view -@ $THREAD -b -o ${WORKDIR}/10_alignment.bam
 
 # preprocess 3
 python ${SCRIPTDIR}/preprocessing_3.py ${WORKDIR} 
 
-cat ${WORKDIR}/3_alignment.sam.gz ${WORKDIR}/7_alignment.sam.gz ${WORKDIR}/11_alignment.sam.gz > ${WORKDIR}/data.sam.gz
-rm -f ${WORKDIR}/3_alignment.sam.gz ${WORKDIR}/7_alignment.sam.gz ${WORKDIR}/11_alignment.sam.gz ${WORKDIR}/2_alignment.sam.gz ${WORKDIR}/4_rearranged.fastq.gz ${WORKDIR}/5_rotated.fastq.gz ${WORKDIR}/6_alignment.sam.gz ${WORKDIR}/8_rotated.fastq.gz ${WORKDIR}/9_alignment.sam.gz ${WORKDIR}/10_alignment.sam.gz
+samtools merge -@ $THREAD ${WORKDIR}/consensus_align.bam ${WORKDIR}/3_alignment.bam ${WORKDIR}/7_alignment.bam ${WORKDIR}/11_alignment.bam
+#rm -f ${WORKDIR}/3_alignment.bam ${WORKDIR}/7_alignment.bam ${WORKDIR}/11_alignment.bam ${WORKDIR}/2_alignment.bam ${WORKDIR}/4_rearranged.fastq.gz ${WORKDIR}/5_rotated.fastq.gz ${WORKDIR}/6_alignment.bam ${WORKDIR}/8_rotated.fastq.gz ${WORKDIR}/9_alignment.bam ${WORKDIR}/10_alignment.bam
 
 #Scripts below are specific for analysing poliovirus genome. Don't apply it to human or other genome!!!
 #python ${SCRIPTDIR}/QualityFilter.py ${WORKDIR} ${REFFILE}
